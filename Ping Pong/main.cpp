@@ -31,7 +31,7 @@ struct Player {
 	}
 
 	void Draw() {
-		DrawRectangleRec(GetRectangle(), WHITE);
+		DrawRectangleRec(GetRectangle(), GREEN);
 	}
 
 };
@@ -40,6 +40,7 @@ struct Player {
 
 int main() {
 	InitWindow(800,600,"Ping Pong");
+	InitAudioDevice();
 	SetWindowState(FLAG_VSYNC_HINT);
 
 	std::unique_ptr<Ball> ball = std::make_unique<Ball>();
@@ -48,8 +49,8 @@ int main() {
 
 	ball->x = (GetScreenWidth() / 2.0f);
 	ball->y = (GetScreenHeight() / 2.0f);
-	ball->speedX = 100;
-	ball->speedY = 100;
+	ball->speedX = 0;
+	ball->speedY = 0;
 	ball->radius = 5;
 	playerLeft->x = 50;
 	playerLeft->y = (GetScreenHeight() / 2) ;
@@ -66,9 +67,10 @@ int main() {
 	playerRight->speed = 500;
 	playerRight->score = 0;
 
-	const char* text{ nullptr };
-	const char* leftScore{ nullptr };
-	const char* rightScore{ nullptr };
+	const char* text{ "Press SPACE Button To Start" };
+
+	Sound pong = LoadSound("pong.wav");
+
 
 	while (!WindowShouldClose()) {
 
@@ -114,6 +116,7 @@ int main() {
 			{
 				ball->speedX *= -1.1;
 				ball->speedY = (ball->y - playerLeft->y)/(playerLeft->height) *  ball->speedX;
+				PlaySound(pong);
 				
 			}
 			
@@ -125,70 +128,96 @@ int main() {
 				ball->speedX *= -1.1;
 				ball->speedY = (ball->y - playerRight->y) / (playerRight->height ) * -ball->speedX;
 			}
+			PlaySound(pong);
 		}
 
 		if (ball->x>GetScreenWidth())
 		{
-			text = "Left player Won! \n Press SPACE to restart";
+			
 			playerLeft->score++;
+			text = "Left player Won! \n Press SPACE to restart ";
+			ball->x = (GetScreenWidth() / 2.0f);
+			ball->y = (GetScreenHeight() / 2.0f);
+			ball->speedX = 0;
+			ball->speedY = 0;
 		}
 		if (ball->x < 0)
 		{
-			text = "Right player Won! \n Press SPACE to restart";
 			playerRight->score++;
+			text = "Right player Won! \n Press SPACE to restart";
+			ball->x = (GetScreenWidth() / 2.0f);
+			ball->y = (GetScreenHeight() / 2.0f);
+			ball->speedX = 0;
+			ball->speedY = 0;
+			
 		}
 
-		  leftScore = "" + playerLeft->score;
-		  rightScore = "" + playerRight->score;
+		  
+		
 
-		DrawText(leftScore, 0, 50 , 50, WHITE);
-		DrawText(rightScore, 0, GetScreenWidth() -50 , 50, WHITE);
+
+		  if (IsKeyDown(KEY_SPACE))
+		  {
+			  ball->x = (GetScreenWidth() / 2.0f);
+			  ball->y = (GetScreenHeight() / 2.0f);
+			  ball->speedX = 100;
+			  ball->speedY = 100;
+			  ball->radius = 5;
+			  playerLeft->x = 50;
+			  playerLeft->y = (GetScreenHeight() / 2);
+			  playerLeft->height = 100;
+			  playerLeft->width = 7;
+			  playerLeft->speed = 500;
+
+
+
+			  playerRight->x = (GetScreenWidth() - 50);
+			  playerRight->y = (GetScreenHeight() / 2);
+			  playerRight->height = 100;
+			  playerRight->width = 7;
+			  playerRight->speed = 500;
+			  text = nullptr;
+		  }
+
+
+
+
+
+
+
+
+
 
 
 
 		BeginDrawing();
 		ClearBackground(BLACK);
 
+		
 
 		ball->Draw();
 		playerLeft->Draw();
 		playerRight->Draw();
-		
+
+
+
+		DrawText(TextFormat("%08i", playerLeft->score), 10, 10, 20, WHITE);
+		DrawText(TextFormat("%08i", playerRight->score), GetScreenWidth() - 100, 10, 20, WHITE);
+
 		if (text)
 		{
-			DrawText(text, 100, GetScreenWidth() / 2.0f - 30, 50, WHITE);
+			DrawText(text, 100, GetScreenWidth() / 2.0f - 30, 35, WHITE);
 		}
-		DrawFPS(10, 10);
 		EndDrawing();
 
-		if (IsKeyDown(KEY_SPACE))
-		{
-			ball->x = (GetScreenWidth() / 2.0f);
-			ball->y = (GetScreenHeight() / 2.0f);
-			ball->speedX = 100;
-			ball->speedY = 100;
-			ball->radius = 5;
-			playerLeft->x = 50;
-			playerLeft->y = (GetScreenHeight() / 2);
-			playerLeft->height = 100;
-			playerLeft->width = 7;
-			playerLeft->speed = 500;
-			
-
-
-			playerRight->x = (GetScreenWidth() - 50);
-			playerRight->y = (GetScreenHeight() / 2);
-			playerRight->height = 100;
-			playerRight->width = 7;
-			playerRight->speed = 500;
-			text = nullptr;
-		}
+	
 
 
 
 	}
 
-
+	CloseAudioDevice();
 	CloseWindow();
+
 	return 0;
 }
